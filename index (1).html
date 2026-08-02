@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Localization Studio — Việt hóa &amp; Lồng tiếng</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #12151a;
+    --surface: #1b2028;
+    --surface-2: #232a34;
+    --border: #2c3542;
+    --text: #eef1f5;
+    --text-muted: #8b93a1;
+    --accent: #f2b705;
+    --accent-dim: #7a5f08;
+    --success: #4caf82;
+    --error: #e0575b;
+    --radius: 10px;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body {
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    padding: 48px 20px 80px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { animation: none !important; transition: none !important; }
+  }
+
+  .shell {
+    width: 100%;
+    max-width: 720px;
+  }
+
+  header.hero {
+    margin-bottom: 32px;
+  }
+
+  .eyebrow {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+
+  .eyebrow .dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 0 0 rgba(242, 183, 5, 0.6);
+    animation: pulse 2.4s ease-out infinite;
+  }
+
+  @keyframes pulse {
+    0%   { box-shadow: 0 0 0 0 rgba(242, 183, 5, 0.55); }
+    70%  { box-shadow: 0 0 0 8px rgba(242, 183, 5, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(242, 183, 5, 0); }
+  }
+
+  h1 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: clamp(28px, 5vw, 38px);
+    line-height: 1.15;
+    margin: 0 0 10px;
+  }
+
+  header.hero p {
+    color: var(--text-muted);
+    font-size: 15px;
+    line-height: 1.55;
+    max-width: 56ch;
+    margin: 0;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    margin-bottom: 20px;
+  }
+
+  .card h2 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 14px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin: 0 0 16px;
+  }
+
+  label.field-label {
+    display: block;
+    font-size: 13.5px;
+    font-weight: 500;
+    margin-bottom: 8px;
+    color: var(--text);
+  }
+
+  input[type="password"], input[type="text"] {
+    width: 100%;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 11px 12px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: 'IBM Plex Mono', monospace;
+    outline: none;
+    transition: border-color 0.15s ease;
+  }
+
+  input[type="password"]:focus, input[type="text"]:focus {
+    border-color: var(--accent);
+  }
+
+  .token-row {
+    display: flex;
+    gap: 10px;
+  }
+
+  .token-row input { flex: 1; }
+
+  .btn-ghost {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    border-radius: 8px;
+    padding: 0 14px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: border-color 0.15s ease, color 0.15s ease;
+  }
+  .btn-ghost:hover { border-color: var(--text-muted); color: var(--text); }
+
+  .hint {
+    font-size: 12.5px;
+    color: var(--text-muted);
+    margin-top: 8px;
+    line-height: 1.5;
+  }
+
+  .drop-zone {
+    border: 1.5px dashed var(--border);
+    border-radius: var(--radius);
+    padding: 32px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.15s ease, background 0.15s ease;
+    position: relative;
+  }
+
+  .drop-zone.dragover, .drop-zone:hover {
+    border-color: var(--accent);
+    background: rgba(242, 183, 5, 0.04);
+  }
+
+  .drop-zone input[type="file"] {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+  }
+
+  .drop-zone .icon {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 22px;
+    color: var(--accent);
+    margin-bottom: 10px;
+  }
+
+  .drop-zone .primary-text {
+    font-size: 14.5px;
+    font-weight: 500;
+  }
+
+  .drop-zone .secondary-text {
+    font-size: 12.5px;
+    color: var(--text-muted);
+    margin-top: 4px;
+  }
+
+  .file-chip {
+    display: none;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin-top: 14px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+  }
+
+  .file-chip.visible { display: flex; }
+
+  .file-chip .name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .file-chip .size {
+    color: var(--text-muted);
+    flex-shrink: 0;
+  }
+
+  .option-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 0;
+    border-top: 1px solid var(--border);
+  }
+
+  .option-row:first-of-type { border-top: none; padding-top: 0; }
+
+  .option-row .option-text .title {
+    font-size: 14px;
+    font-weight: 500;
+  }
+
+  .option-row .option-text .desc {
+    font-size: 12.5px;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+
+  .switch {
+    position: relative;
+    width: 42px;
+    height: 24px;
+    flex-shrink: 0;
+  }
+
+  .switch input { opacity: 0; width: 0; height: 0; }
+
+  .switch .track {
+    position: absolute;
+    inset: 0;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    cursor: pointer;
+    transition: background 0.15s ease;
+  }
+
+  .switch .track::before {
+    content: "";
+    position: absolute;
+    width: 18px;
+    height: 18px;
+    left: 2px;
+    top: 2px;
+    background: var(--text-muted);
+    border-radius: 50%;
+    transition: transform 0.15s ease, background 0.15s ease;
+  }
+
+  .switch input:checked + .track {
+    background: rgba(242, 183, 5, 0.18);
+    border-color: var(--accent);
+  }
+
+  .switch input:checked + .track::before {
+    transform: translateX(18px);
+    background: var(--accent);
+  }
+
+  .volume-block {
+    margin-top: 4px;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.2s ease;
+  }
+
+  .volume-block.expanded { max-height: 80px; }
+
+  .volume-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding-top: 14px;
+  }
+
+  input[type="range"] {
+    flex: 1;
+    accent-color: var(--accent);
+    height: 4px;
+  }
+
+  .volume-value {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    color: var(--accent);
+    width: 42px;
+    text-align: right;
+  }
+
+  .process-btn {
+    width: 100%;
+    background: var(--accent);
+    color: #1a1305;
+    border: none;
+    border-radius: 8px;
+    padding: 15px 18px;
+    font-size: 15px;
+    font-weight: 600;
+    font-family: 'Space Grotesk', sans-serif;
+    cursor: pointer;
+    transition: filter 0.15s ease, opacity 0.15s ease;
+  }
+
+  .process-btn:hover:not(:disabled) { filter: brightness(1.08); }
+
+  .process-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  /* --- Signature element: dubbing-timecode progress readout --- */
+  .status-panel {
+    display: none;
+    margin-top: 18px;
+  }
+
+  .status-panel.visible { display: block; }
+
+  .timecode {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    color: var(--accent);
+    letter-spacing: 0.02em;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .waveform {
+    display: flex;
+    align-items: flex-end;
+    gap: 3px;
+    height: 28px;
+    margin-bottom: 12px;
+  }
+
+  .waveform .bar {
+    flex: 1;
+    background: var(--accent-dim);
+    border-radius: 2px;
+    animation: bar-bounce 1.1s ease-in-out infinite;
+  }
+
+  .waveform.done .bar {
+    animation: none;
+    background: var(--success);
+    height: 100% !important;
+  }
+
+  .waveform.error .bar {
+    animation: none;
+    background: var(--error);
+    height: 40% !important;
+  }
+
+  @keyframes bar-bounce {
+    0%, 100% { height: 20%; }
+    50% { height: 90%; }
+  }
+
+  .log-line {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12.5px;
+    color: var(--text-muted);
+    white-space: pre-wrap;
+    line-height: 1.6;
+  }
+
+  .log-line.error-text { color: var(--error); }
+  .log-line.success-text { color: var(--success); }
+
+  .result-card { display: none; }
+  .result-card.visible { display: block; }
+
+  video {
+    width: 100%;
+    border-radius: 8px;
+    background: #000;
+    display: block;
+    margin-bottom: 14px;
+  }
+
+  .download-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 8px;
+    padding: 11px 18px;
+    font-size: 14px;
+    font-weight: 500;
+    text-decoration: none;
+    transition: border-color 0.15s ease;
+  }
+
+  .download-btn:hover { border-color: var(--accent); }
+
+  footer {
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 12px;
+    margin-top: 36px;
+  }
+</style>
+</head>
+<body>
+
+<div class="shell">
+
+  <header class="hero">
+    <div class="eyebrow"><span class="dot"></span>Localization Studio</div>
+    <h1>Việt hóa &amp; lồng tiếng video của bạn</h1>
+    <p>
+      Upload video bạn sở hữu hoặc đã được cấp phép nội dung. Hệ thống nhận diện giọng nói,
+      dịch sang tiếng Việt và lồng tiếng AI, gắn phụ đề — trả về bản Việt hóa hoàn chỉnh.
+    </p>
+  </header>
+
+  <section class="card">
+    <h2>Kết nối Space</h2>
+    <label class="field-label" for="hf-token">Hugging Face Access Token</label>
+    <div class="token-row">
+      <input type="password" id="hf-token" placeholder="hf_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" autocomplete="off" />
+      <button class="btn-ghost" id="toggle-token" type="button">Hiện</button>
+    </div>
+    <p class="hint">Token chỉ lưu trên trình duyệt của bạn (localStorage), dùng để xác thực vào Space riêng tư. Không được gửi đi đâu khác ngoài Hugging Face.</p>
+  </section>
+
+  <section class="card">
+    <h2>Video nguồn</h2>
+    <div class="drop-zone" id="drop-zone">
+      <input type="file" id="file-input" accept="video/mp4,video/*" />
+      <div class="icon">▶</div>
+      <div class="primary-text">Kéo thả file MP4 vào đây, hoặc bấm để chọn</div>
+      <div class="secondary-text">Chỉ nhận 1 file video mỗi lượt xử lý</div>
+    </div>
+    <div class="file-chip" id="file-chip">
+      <span class="name" id="file-name"></span>
+      <span class="size" id="file-size"></span>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Tùy chọn âm thanh</h2>
+    <div class="option-row">
+      <div class="option-text">
+        <div class="title">Giữ âm thanh gốc</div>
+        <div class="desc">Trộn thêm âm thanh gốc của video cùng giọng lồng tiếng tiếng Việt</div>
+      </div>
+      <label class="switch">
+        <input type="checkbox" id="keep-audio-toggle" />
+        <span class="track"></span>
+      </label>
+    </div>
+    <div class="volume-block" id="volume-block">
+      <div class="volume-row">
+        <span class="field-label" style="margin:0; white-space:nowrap;">Âm lượng gốc</span>
+        <input type="range" id="volume-slider" min="0" max="1" step="0.01" value="0.2" />
+        <span class="volume-value" id="volume-value">0.20</span>
+      </div>
+    </div>
+  </section>
+
+  <button class="process-btn" id="process-btn">Xử lý video</button>
+
+  <section class="card status-panel" id="status-panel">
+    <div class="timecode">
+      <span id="stage-label">00:00:00,000 — Đang khởi tạo</span>
+      <span id="stage-percent">0%</span>
+    </div>
+    <div class="waveform" id="waveform">
+      <div class="bar" style="animation-delay:0s"></div>
+      <div class="bar" style="animation-delay:0.1s"></div>
+      <div class="bar" style="animation-delay:0.2s"></div>
+      <div class="bar" style="animation-delay:0.3s"></div>
+      <div class="bar" style="animation-delay:0.15s"></div>
+      <div class="bar" style="animation-delay:0.25s"></div>
+      <div class="bar" style="animation-delay:0.05s"></div>
+      <div class="bar" style="animation-delay:0.35s"></div>
+    </div>
+    <div class="log-line" id="log-line">Đang kết nối tới Space...</div>
+  </section>
+
+  <section class="card result-card" id="result-card">
+    <h2>Kết quả</h2>
+    <video id="result-video" controls></video>
+    <a class="download-btn" id="download-link" download="video_localized.mp4">⬇ Tải file MP4</a>
+  </section>
+
+  <footer>Localization Studio · chạy trên Hugging Face Space qua @gradio/client</footer>
+
+</div>
+
+<script type="module">
+  import { Client, handle_file } from "https://cdn.jsdelivr.net/npm/@gradio/client/+esm";
+
+  // ---- Cấu hình Space: đổi thành "USERNAME/SPACE_NAME" thật của bạn ----
+  const SPACE_ID = "USERNAME/SPACE_NAME";
+  const TOKEN_STORAGE_KEY = "loc_studio_hf_token";
+
+  const tokenInput = document.getElementById("hf-token");
+  const toggleTokenBtn = document.getElementById("toggle-token");
+  const fileInput = document.getElementById("file-input");
+  const dropZone = document.getElementById("drop-zone");
+  const fileChip = document.getElementById("file-chip");
+  const fileNameEl = document.getElementById("file-name");
+  const fileSizeEl = document.getElementById("file-size");
+  const keepAudioToggle = document.getElementById("keep-audio-toggle");
+  const volumeBlock = document.getElementById("volume-block");
+  const volumeSlider = document.getElementById("volume-slider");
+  const volumeValue = document.getElementById("volume-value");
+  const processBtn = document.getElementById("process-btn");
+  const statusPanel = document.getElementById("status-panel");
+  const stageLabel = document.getElementById("stage-label");
+  const stagePercent = document.getElementById("stage-percent");
+  const waveform = document.getElementById("waveform");
+  const logLine = document.getElementById("log-line");
+  const resultCard = document.getElementById("result-card");
+  const resultVideo = document.getElementById("result-video");
+  const downloadLink = document.getElementById("download-link");
+
+  let selectedFile = null;
+
+  // --- Ghi nhớ HF Token qua localStorage ---
+  const savedToken = localStorage.getItem(TOKEN_STORAGE_KEY);
+  if (savedToken) tokenInput.value = savedToken;
+
+  tokenInput.addEventListener("input", () => {
+    localStorage.setItem(TOKEN_STORAGE_KEY, tokenInput.value.trim());
+  });
+
+  toggleTokenBtn.addEventListener("click", () => {
+    const isPassword = tokenInput.type === "password";
+    tokenInput.type = isPassword ? "text" : "password";
+    toggleTokenBtn.textContent = isPassword ? "Ẩn" : "Hiện";
+  });
+
+  // --- Chọn / kéo-thả file ---
+  function formatBytes(bytes) {
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  }
+
+  function setSelectedFile(file) {
+    if (!file) return;
+    selectedFile = file;
+    fileNameEl.textContent = file.name;
+    fileSizeEl.textContent = formatBytes(file.size);
+    fileChip.classList.add("visible");
+  }
+
+  fileInput.addEventListener("change", (e) => setSelectedFile(e.target.files[0]));
+
+  ["dragenter", "dragover"].forEach((evt) =>
+    dropZone.addEventListener(evt, (e) => {
+      e.preventDefault();
+      dropZone.classList.add("dragover");
+    })
+  );
+  ["dragleave", "drop"].forEach((evt) =>
+    dropZone.addEventListener(evt, (e) => {
+      e.preventDefault();
+      dropZone.classList.remove("dragover");
+    })
+  );
+  dropZone.addEventListener("drop", (e) => {
+    const file = e.dataTransfer.files[0];
+    if (file) setSelectedFile(file);
+  });
+
+  // --- Toggle âm thanh gốc + slider volume ---
+  keepAudioToggle.addEventListener("change", () => {
+    volumeBlock.classList.toggle("expanded", keepAudioToggle.checked);
+  });
+
+  volumeSlider.addEventListener("input", () => {
+    volumeValue.textContent = parseFloat(volumeSlider.value).toFixed(2);
+  });
+
+  // --- Xử lý video: gọi Space qua @gradio/client ---
+  function setStage(percent, label, isError = false) {
+    const now = new Date();
+    const ts = now.toISOString().substr(11, 12).replace(".", ",");
+    stageLabel.textContent = `${ts} — ${label}`;
+    stagePercent.textContent = `${Math.round(percent * 100)}%`;
+    if (isError) {
+      waveform.classList.add("error");
+      waveform.classList.remove("done");
+    }
+  }
+
+  function appendLog(text, kind = "") {
+    logLine.textContent = text;
+    logLine.className = "log-line" + (kind ? ` ${kind}` : "");
+  }
+
+  processBtn.addEventListener("click", async () => {
+    const token = tokenInput.value.trim();
+    if (!token) {
+      alert("Vui lòng nhập Hugging Face Access Token trước khi xử lý.");
+      return;
+    }
+    if (!selectedFile) {
+      alert("Vui lòng chọn một file video MP4 trước khi xử lý.");
+      return;
+    }
+
+    processBtn.disabled = true;
+    processBtn.textContent = "Đang xử lý...";
+    statusPanel.classList.add("visible");
+    resultCard.classList.remove("visible");
+    waveform.classList.remove("done", "error");
+    setStage(0.02, "Đang kết nối tới Space");
+    appendLog("Đang xác thực Hugging Face Token...");
+
+    try {
+      const app = await Client.connect(SPACE_ID, { hf_token: token });
+
+      setStage(0.1, "Đang tải video lên Space");
+      appendLog(`Đang gửi "${selectedFile.name}" (${formatBytes(selectedFile.size)}) lên hàng đợi xử lý...`);
+
+      const keepAudio = keepAudioToggle.checked;
+      const volume = parseFloat(volumeSlider.value);
+
+      const job = app.submit("/predict", [handle_file(selectedFile), keepAudio, volume]);
+
+      for await (const msg of job) {
+        if (msg.type === "status") {
+          const pct = typeof msg.progress === "number" ? msg.progress : null;
+          const desc = msg.stage === "pending" ? "Đang chờ trong hàng đợi..." : (msg.eta ? `Ước tính còn ${Math.round(msg.eta)}s` : "Đang xử lý...");
+          setStage(pct ?? 0.5, desc);
+          appendLog(desc);
+        } else if (msg.type === "data") {
+          const output = msg.data && msg.data[0];
+          const videoUrl = output && (output.url || (output.value && output.value.url));
+          if (videoUrl) {
+            setStage(1.0, "Hoàn tất");
+            waveform.classList.add("done");
+            appendLog("Xử lý thành công. Video đã sẵn sàng.", "success-text");
+            resultVideo.src = videoUrl;
+            downloadLink.href = videoUrl;
+            resultCard.classList.add("visible");
+          }
+        }
+      }
+    } catch (err) {
+      console.error(err);
+      setStage(1.0, "Xử lý thất bại", true);
+      appendLog(`Lỗi: ${err.message || err}`, "error-text");
+    } finally {
+      processBtn.disabled = false;
+      processBtn.textContent = "Xử lý video";
+    }
+  });
+</script>
+
+</body>
+</html>
