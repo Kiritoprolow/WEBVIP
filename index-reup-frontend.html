@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
+<title>Video Reup Automation — Dịch & Lồng tiếng AI</title>
+<meta name="description" content="Tự động dịch, gắn phụ đề & lồng tiếng video Douyin/Bilibili/Kuaishou sang tiếng Việt bằng AI." />
+<style>
+  :root {
+    --bg-1: #0f0f1a;
+    --card-bg: rgba(255, 255, 255, 0.06);
+    --card-border: rgba(255, 255, 255, 0.12);
+    --accent: #7c5cff;
+    --accent-2: #22d3ee;
+    --text-1: #f4f4f8;
+    --text-2: #a3a3b8;
+    --success: #22c55e;
+    --error: #ef4444;
+    --radius: 16px;
+    --radius-sm: 10px;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    min-height: 100%;
+    background:
+      radial-gradient(circle at 20% 0%, rgba(124, 92, 255, 0.25), transparent 45%),
+      radial-gradient(circle at 90% 20%, rgba(34, 211, 238, 0.18), transparent 40%),
+      var(--bg-1);
+    background-attachment: fixed;
+    color: var(--text-1);
+    font-family: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .container { max-width: 760px; margin: 0 auto; padding: 24px 16px 64px; }
+
+  header { text-align: center; margin-bottom: 24px; padding-top: 12px; }
+  header h1 {
+    font-size: clamp(22px, 5vw, 32px);
+    margin: 0 0 8px;
+    background: linear-gradient(90deg, var(--accent), var(--accent-2));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    font-weight: 800;
+  }
+  header p { color: var(--text-2); margin: 0; font-size: 14px; }
+
+  .card {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-bottom: 18px;
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+  }
+  .card h2 {
+    font-size: 15px; margin: 0 0 14px; color: var(--text-1);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .card h2 .badge {
+    font-size: 11px; background: rgba(124, 92, 255, 0.2); color: var(--accent-2);
+    padding: 2px 8px; border-radius: 999px; font-weight: 600;
+  }
+  .card .field { margin-bottom: 18px; }
+  .card .field:last-child { margin-bottom: 0; }
+  .field-hint { font-size: 12px; color: var(--text-2); margin-top: 6px; line-height: 1.5; }
+  .field-hint a { color: var(--accent-2); }
+
+  label.field-label {
+    display: block; font-size: 13px; color: var(--text-1); margin-bottom: 8px; font-weight: 600;
+  }
+
+  input[type="text"], input[type="password"], textarea {
+    width: 100%;
+    background: rgba(0, 0, 0, 0.25);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-sm);
+    padding: 12px 14px;
+    color: var(--text-1);
+    font-size: 14px;
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    resize: vertical;
+  }
+  input[type="text"]:focus, input[type="password"]:focus, textarea:focus {
+    border-color: var(--accent); box-shadow: 0 0 0 3px rgba(124, 92, 255, 0.2);
+  }
+  textarea { min-height: 90px; line-height: 1.5; }
+
+  input[type="file"] {
+    width: 100%;
+    background: rgba(0, 0, 0, 0.25);
+    border: 1px dashed var(--card-border);
+    border-radius: var(--radius-sm);
+    padding: 14px;
+    color: var(--text-2);
+    font-size: 13px;
+  }
+
+  .token-row { display: flex; gap: 8px; }
+  .token-row input { flex: 1; }
+
+  .btn {
+    appearance: none; border: none; border-radius: var(--radius-sm);
+    padding: 11px 18px; font-size: 14px; font-weight: 700; cursor: pointer;
+    transition: transform 0.1s ease, opacity 0.15s ease, box-shadow 0.15s ease;
+    white-space: nowrap;
+  }
+  .btn:active { transform: scale(0.97); }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn-primary {
+    background: linear-gradient(90deg, var(--accent), var(--accent-2));
+    color: #0f0f1a; box-shadow: 0 4px 18px rgba(124, 92, 255, 0.35);
+  }
+  .btn-secondary { background: rgba(255, 255, 255, 0.08); color: var(--text-1); border: 1px solid var(--card-border); }
+  .btn-full { width: 100%; padding: 14px; font-size: 15px; }
+
+  .status-saved {
+    display: inline-flex; align-items: center; gap: 5px; font-size: 12px; color: var(--success);
+    margin-top: 8px; height: 16px; opacity: 0; transition: opacity 0.2s ease;
+  }
+  .status-saved.show { opacity: 1; }
+
+  /* --- Pill radio group (thay cho gr.Radio) --- */
+  .pill-group { display: flex; flex-wrap: wrap; gap: 8px; }
+  .pill-group input[type="radio"] { position: absolute; opacity: 0; width: 0; height: 0; }
+  .pill-group label {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 9px 14px; border-radius: 999px; font-size: 13px; font-weight: 600;
+    background: rgba(255, 255, 255, 0.06); border: 1px solid var(--card-border);
+    color: var(--text-2); cursor: pointer; transition: all 0.15s ease; user-select: none;
+  }
+  .pill-group input[type="radio"]:checked + label {
+    background: linear-gradient(90deg, var(--accent), var(--accent-2));
+    color: #0f0f1a; border-color: transparent;
+  }
+  .pill-group input[type="radio"]:focus-visible + label { outline: 2px solid var(--accent-2); }
+
+  /* --- Toggle switch --- */
+  .row-between { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 4px; }
+  .row-between label.field-label { margin-bottom: 0; }
+  .switch { position: relative; display: inline-block; width: 46px; height: 26px; flex-shrink: 0; }
+  .switch input { opacity: 0; width: 0; height: 0; }
+  .slider-toggle {
+    position: absolute; cursor: pointer; inset: 0; background: rgba(255, 255, 255, 0.15);
+    border-radius: 999px; transition: 0.2s;
+  }
+  .slider-toggle::before {
+    content: ""; position: absolute; height: 20px; width: 20px; left: 3px; bottom: 3px;
+    background: #fff; border-radius: 50%; transition: 0.2s;
+  }
+  input:checked + .slider-toggle { background: linear-gradient(90deg, var(--accent), var(--accent-2)); }
+  input:checked + .slider-toggle::before { transform: translateX(20px); }
+
+  /* --- Checkbox pill --- */
+  .checkbox-row {
+    display: flex; align-items: center; gap: 10px; cursor: pointer;
+    padding: 10px 12px; border-radius: var(--radius-sm); border: 1px solid var(--card-border);
+    background: rgba(255, 255, 255, 0.04);
+  }
+  .checkbox-row input { width: 18px; height: 18px; accent-color: var(--accent); flex-shrink: 0; }
+  .checkbox-row span { font-size: 13px; color: var(--text-1); }
+
+  /* --- Slider --- */
+  .slider-wrap { display: flex; align-items: center; gap: 12px; }
+  input[type="range"] {
+    flex: 1; -webkit-appearance: none; height: 6px; border-radius: 999px;
+    background: rgba(255, 255, 255, 0.15); outline: none;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%;
+    background: linear-gradient(90deg, var(--accent), var(--accent-2)); cursor: pointer;
+    box-shadow: 0 2px 8px rgba(124, 92, 255, 0.5);
+  }
+  input[type="range"]::-moz-range-thumb {
+    width: 18px; height: 18px; border: none; border-radius: 50%;
+    background: linear-gradient(90deg, var(--accent), var(--accent-2)); cursor: pointer;
+  }
+  .slider-value {
+    min-width: 46px; text-align: center; font-size: 13px; font-weight: 700; color: var(--accent-2);
+    background: rgba(34, 211, 238, 0.12); border-radius: 8px; padding: 4px 0;
+  }
+
+  .dub-only { display: none; }
+  .dub-only.show { display: block; }
+  .sub-option { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--card-border); }
+  .disabled { opacity: 0.4; pointer-events: none; }
+
+  .alert {
+    display: none; border-radius: var(--radius-sm); padding: 12px 14px; font-size: 13px;
+    margin-top: 14px; line-height: 1.5;
+  }
+  .alert.show { display: block; }
+  .alert-error { background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.4); color: #fca5a5; }
+  .alert-info { background: rgba(34, 211, 238, 0.1); border: 1px solid rgba(34, 211, 238, 0.35); color: var(--accent-2); }
+
+  #progressSection, #resultSection { display: none; }
+  #progressSection.show, #resultSection.show { display: block; }
+
+  .progress-track {
+    width: 100%; height: 10px; border-radius: 999px; background: rgba(255, 255, 255, 0.1);
+    overflow: hidden; margin-bottom: 10px;
+  }
+  .progress-fill {
+    height: 100%; width: 0%; border-radius: 999px;
+    background: linear-gradient(90deg, var(--accent), var(--accent-2));
+    transition: width 0.3s ease;
+  }
+  .progress-fill.indeterminate {
+    width: 40% !important; animation: indeterminate 1.2s ease-in-out infinite;
+  }
+  @keyframes indeterminate {
+    0% { margin-left: 0%; }
+    50% { margin-left: 60%; }
+    100% { margin-left: 0%; }
+  }
+  #progressText { font-size: 13px; color: var(--text-2); }
+
+  #resultVideo, #historyVideo { width: 100%; border-radius: var(--radius-sm); background: #000; display: block; }
+  #resultStatus { white-space: pre-wrap; }
+
+  /* --- Lịch sử 24h --- */
+  .history-item {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    padding: 11px 13px; border-radius: var(--radius-sm);
+    border: 1px solid var(--card-border); background: rgba(255, 255, 255, 0.04);
+    cursor: pointer; transition: all 0.15s ease; user-select: none;
+  }
+  .history-item:hover { border-color: var(--accent); background: rgba(124, 92, 255, 0.08); }
+  .history-item.active { border-color: var(--accent-2); background: rgba(34, 211, 238, 0.1); }
+  .history-item .name {
+    font-size: 12px; color: var(--text-1); word-break: break-all; flex: 1; line-height: 1.4;
+  }
+  .history-item .action { font-size: 12px; font-weight: 700; color: var(--accent-2); flex-shrink: 0; }
+  .history-item.loading .action { color: var(--text-2); }
+
+  footer { text-align: center; font-size: 12px; color: var(--text-2); margin-top: 24px; line-height: 1.6; }
+  footer code {
+    background: rgba(255, 255, 255, 0.08); padding: 1px 6px; border-radius: 6px; font-size: 11px;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>📼 Video Reup Automation</h1>
+    <p>Dịch, gắn phụ đề &amp; lồng tiếng AI cho video Douyin / Bilibili / Kuaishou — chạy trực tiếp trên trình duyệt của bạn</p>
+  </header>
+
+  <!-- ================= HF TOKEN ================= -->
+  <section class="card">
+    <h2>🔐 Kết nối Hugging Face Space <span class="badge">Private Space</span></h2>
+    <div class="field">
+      <label class="field-label" for="hfToken">Hugging Face Access Token</label>
+      <div class="token-row">
+        <input type="password" id="hfToken" placeholder="hf_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" />
+        <button class="btn btn-secondary" id="toggleTokenBtn" type="button">👁️</button>
+        <button class="btn btn-primary" id="saveTokenBtn" type="button">Lưu</button>
+      </div>
+      <div class="field-hint">
+        Token chỉ được lưu trong <code>localStorage</code> của trình duyệt bạn (không gửi lên bất kỳ
+        server nào khác ngoài chính Hugging Face khi kết nối Space). Lấy token tại
+        <a href="https://huggingface.co/settings/tokens" target="_blank" rel="noopener">huggingface.co/settings/tokens</a>
+        (chỉ cần quyền <code>read</code>).
+      </div>
+      <div class="status-saved" id="tokenSavedStatus">✅ Đã lưu token</div>
+    </div>
+  </section>
+
+  <!-- ================= NGUỒN VIDEO ================= -->
+  <section class="card">
+    <h2>📦 Nội dung cần xử lý</h2>
+    <div class="field">
+      <label class="field-label" for="shareText">Dán Link hoặc Văn bản chia sẻ (Douyin / TikTok / Bilibili / Kuaishou)</label>
+      <textarea id="shareText" placeholder="Dán link video hoặc nguyên văn bản chia sẻ copy từ app (vd: 5.69 复制打开抖音... https://v.douyin.com/xxxxx/ ...) — hệ thống tự động lọc lấy link."></textarea>
+    </div>
+    <div class="field">
+      <label class="field-label" for="videoFile">— HOẶC — Tải file video lên trực tiếp</label>
+      <input type="file" id="videoFile" accept="video/*" />
+      <div class="field-hint">
+        ⬆️ Chọn 1 trong 2: dán link/văn bản ở trên, HOẶC tải file video lên. Nếu có dán văn bản, hệ
+        thống ưu tiên trích xuất link và tải video từ link trước, bỏ qua file tải lên (nếu có).
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= TUỲ CHỌN XỬ LÝ ================= -->
+  <section class="card">
+    <h2>🎨 Tuỳ chọn xử lý</h2>
+
+    <div class="field">
+      <label class="field-label">Kiểu khung phụ đề (che phụ đề gốc tiếng Trung)</label>
+      <div class="pill-group" id="subtitleStyleGroup">
+        <input type="radio" name="subtitleStyle" id="style0" value="Khung Vàng Chữ Đen">
+        <label for="style0">Khung Vàng Chữ Đen</label>
+        <input type="radio" name="subtitleStyle" id="style1" value="Khung Đen Chữ Trắng">
+        <label for="style1">Khung Đen Chữ Trắng</label>
+        <input type="radio" name="subtitleStyle" id="style2" value="Phụ đề truyền thống" checked>
+        <label for="style2">Phụ đề truyền thống</label>
+      </div>
+    </div>
+
+    <div class="field">
+      <label class="field-label">Chế độ khung hình (Canvas 9:16 Shorts/Reels/TikTok)</label>
+      <div class="pill-group" id="aspectModeGroup">
+        <input type="radio" name="aspectMode" id="aspect0" value="Giữ nguyên tỉ lệ gốc" checked>
+        <label for="aspect0">Giữ nguyên tỉ lệ gốc</label>
+        <input type="radio" name="aspectMode" id="aspect1" value="CapCut Canvas 9:16 (Nền mờ đệm)">
+        <label for="aspect1">Canvas 9:16 (Nền mờ đệm)</label>
+        <input type="radio" name="aspectMode" id="aspect2" value="CapCut Canvas 9:16 (Nền đen đệm)">
+        <label for="aspect2">Canvas 9:16 (Nền đen đệm)</label>
+      </div>
+    </div>
+
+    <div class="field">
+      <label class="field-label">Văn phong dịch</label>
+      <div class="pill-group" id="contentStyleGroup">
+        <input type="radio" name="contentStyle" id="cs0" value="drama" checked>
+        <label for="cs0">Drama</label>
+        <input type="radio" name="contentStyle" id="cs1" value="comedy">
+        <label for="cs1">Comedy</label>
+        <input type="radio" name="contentStyle" id="cs2" value="kids">
+        <label for="cs2">Kids</label>
+      </div>
+      <div class="field-hint">Quyết định giọng văn khi Gemini dịch câu thoại sang tiếng Việt.</div>
+    </div>
+
+    <div class="field">
+      <label class="checkbox-row">
+        <input type="checkbox" id="shortTitleMode">
+        <span>⚡ Chế độ Tiêu đề Ngắn (Ép Caption tối đa ~100 ký tự)</span>
+      </label>
+    </div>
+
+    <div class="field">
+      <label class="field-label">Tốc độ phát (Speed)</label>
+      <div class="slider-wrap">
+        <input type="range" id="speedSlider" min="1.00" max="1.08" step="0.01" value="1.03">
+        <div class="slider-value" id="speedValue">1.03</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= CHẾ ĐỘ XỬ LÝ + LỒNG TIẾNG ================= -->
+  <section class="card">
+    <h2>🎙️ Chế độ xử lý</h2>
+    <div class="field">
+      <div class="pill-group" id="modeGroup">
+        <input type="radio" name="processingMode" id="mode0" value="Chỉ gắn phụ đề" checked>
+        <label for="mode0">Chỉ gắn phụ đề</label>
+        <input type="radio" name="processingMode" id="mode1" value="Cả Phụ đề + Lồng tiếng">
+        <label for="mode1">Cả Phụ đề + Lồng tiếng</label>
+      </div>
+    </div>
+
+    <div class="dub-only" id="dubOnlySection">
+      <div class="field sub-option">
+        <label class="field-label">Giọng lồng tiếng AI (tiếng Việt)</label>
+        <div class="pill-group" id="voiceGroup">
+          <input type="radio" name="voice" id="voice0" value="Nữ - Hoài My" checked>
+          <label for="voice0">Nữ - Hoài My</label>
+          <input type="radio" name="voice" id="voice1" value="Nam - Nam Minh">
+          <label for="voice1">Nam - Nam Minh</label>
+        </div>
+      </div>
+
+      <div class="field sub-option">
+        <label class="field-label">Tốc độ đọc giọng AI (Rate %)</label>
+        <div class="slider-wrap">
+          <input type="range" id="ttsRateSlider" min="-20" max="20" step="1" value="0">
+          <div class="slider-value" id="ttsRateValue">0%</div>
+        </div>
+      </div>
+
+      <div class="field sub-option">
+        <label class="field-label">Khoảng nghỉ tối thiểu giữa các câu thoại (giây)</label>
+        <div class="slider-wrap">
+          <input type="range" id="ttsPaddingSlider" min="0.1" max="0.5" step="0.05" value="0.15">
+          <div class="slider-value" id="ttsPaddingValue">0.15</div>
+        </div>
+      </div>
+
+      <div class="field sub-option">
+        <div class="row-between">
+          <label class="field-label" for="keepOriginalToggle">🔊 Giữ âm thanh gốc (trộn cùng lồng tiếng)</label>
+          <label class="switch">
+            <input type="checkbox" id="keepOriginalToggle">
+            <span class="slider-toggle"></span>
+          </label>
+        </div>
+      </div>
+
+      <div class="field" id="volumeWrap">
+        <label class="field-label">Âm lượng âm thanh gốc</label>
+        <div class="slider-wrap">
+          <input type="range" id="volumeSlider" min="0" max="1" step="0.01" value="0.2">
+          <div class="slider-value" id="volumeValue">0.20</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= SUBMIT ================= -->
+  <button class="btn btn-primary btn-full" id="processBtn" type="button">🚀 Xử Lý Video</button>
+
+  <div class="alert alert-error" id="errorAlert"></div>
+
+  <!-- ================= PROGRESS ================= -->
+  <section class="card" id="progressSection">
+    <h2>⏳ Đang xử lý...</h2>
+    <div class="progress-track">
+      <div class="progress-fill" id="progressFill"></div>
+    </div>
+    <div id="progressText">Đang kết nối tới Space...</div>
+  </section>
+
+  <!-- ================= RESULT ================= -->
+  <section class="card" id="resultSection">
+    <h2>✅ Kết quả</h2>
+    <video id="resultVideo" controls playsinline></video>
+    <div class="alert alert-info" id="resultStatus" style="display:block;"></div>
+    <a id="downloadBtn" class="btn btn-secondary btn-full" style="margin-top:12px; text-align:center; text-decoration:none; display:block;" download="video_reup.mp4">
+      ⬇️ Tải MP4
+    </a>
+  </section>
+
+  <!-- ================= LỊCH SỬ VIDEO 24H ================= -->
+  <section class="card" id="historySection">
+    <h2>📂 Lịch sử Video đã render (Lưu 24h)</h2>
+    <div class="field-hint" style="margin-bottom:12px;">
+      Mọi video render <b>thành công</b> được tự động lưu tạm trên Space trong <b>24 giờ</b>.
+      Lỡ thoát hoặc F5 trình duyệt thì bấm <b>"Tải lại danh sách cache"</b> là thấy ngay video cũ,
+      bấm vào để xem lại &amp; tải về luôn — không cần chờ render lại từ đầu. File quá 24h sẽ tự bị xóa.
+    </div>
+    <button class="btn btn-secondary btn-full" id="loadHistoryBtn" type="button">🔄 Tải lại danh sách cache</button>
+    <div id="historyEmpty" class="field-hint" style="display:none; margin-top:12px; text-align:center;">
+      📭 Chưa có video nào được render trong 24 giờ qua.
+    </div>
+    <div id="historyList" style="margin-top:12px; display:flex; flex-direction:column; gap:8px;"></div>
+    <video id="historyVideo" controls playsinline style="display:none; margin-top:14px;"></video>
+    <a id="historyDownloadBtn" class="btn btn-secondary btn-full"
+       style="margin-top:10px; display:none; text-align:center; text-decoration:none;"
+       download="video_lich_su.mp4">⬇️ Tải video này về máy</a>
+  </section>
+
+  <footer>
+    Frontend tĩnh (GitHub Pages) — kết nối trực tiếp tới Hugging Face Space qua
+    <code>@gradio/client</code>, không qua server trung gian nào khác.<br />
+    Trước khi dùng: mở <code>index.html</code>, sửa hằng số <code>SPACE_ID</code> ở phần
+    <code>&lt;script&gt;</code> cho khớp với Space thật của bạn.
+  </footer>
+</div>
+
+<script type="module">
+  import { Client } from "https://cdn.jsdelivr.net/npm/@gradio/client/dist/index.min.js";
+
+  // ============================================================================
+  // CẤU HÌNH — SỬA DÒNG NÀY CHO KHỚP VỚI BACKEND CỦA BẠN
+  // ============================================================================
+  // SPACE_ID: định dạng "username/ten-space" của HF Space (Gradio SDK) đang chạy backend.
+  const SPACE_ID = "your-username/your-space-name";
+
+  // API_NAME: khớp api_name="process_video" khai báo trên submit_btn.click() trong app.py
+  // (endpoint ĐẦY ĐỦ tính năng — giống hệt form trên giao diện Gradio chính).
+  // Thứ tự input dưới đây PHẢI khớp CHÍNH XÁC thứ tự trong inputs=[...] của submit_btn.click:
+  //   video_input, douyin_text_input, subtitle_style_radio, mode_radio, content_style_radio,
+  //   voice_radio, speed_slider, aspect_mode_radio, tts_rate_slider, tts_padding_slider,
+  //   keep_original_audio_checkbox, original_volume_slider, short_title_mode
+  // Đầu ra (outputs) BẮT BUỘC đúng thứ tự: [0] = video file, [1] = Caption/Hashtag (text).
+  const API_NAME = "/process_video";
+
+  // API LỊCH SỬ 24H: khớp 2 hàm refresh_history_ui() / preview_history_video() trong app.py.
+  // 2 hàm này được gắn vào refresh_history_btn.click() / history_dropdown.change() / demo.load()
+  // KHÔNG khai báo api_name -> Gradio tự expose endpoint lấy theo TÊN HÀM PYTHON.
+  //   - "/refresh_history_ui"    : không tham số, trả về gr.update(choices=[...]) cho gr.Dropdown
+  //   - "/preview_history_video" : 1 tham số (tên file), trả về file video (gr.Video)
+  const HISTORY_LIST_API = "/refresh_history_ui";
+  const HISTORY_PREVIEW_API = "/preview_history_video";
+  // ============================================================================
+
+  const $ = (id) => document.getElementById(id);
+
+  const hfTokenInput = $("hfToken");
+  const toggleTokenBtn = $("toggleTokenBtn");
+  const saveTokenBtn = $("saveTokenBtn");
+  const tokenSavedStatus = $("tokenSavedStatus");
+
+  const shareTextInput = $("shareText");
+  const videoFileInput = $("videoFile");
+
+  const speedSlider = $("speedSlider");
+  const speedValue = $("speedValue");
+  const ttsRateSlider = $("ttsRateSlider");
+  const ttsRateValue = $("ttsRateValue");
+  const ttsPaddingSlider = $("ttsPaddingSlider");
+  const ttsPaddingValue = $("ttsPaddingValue");
+  const volumeSlider = $("volumeSlider");
+  const volumeValue = $("volumeValue");
+  const volumeWrap = $("volumeWrap");
+  const keepOriginalToggle = $("keepOriginalToggle");
+  const shortTitleMode = $("shortTitleMode");
+  const dubOnlySection = $("dubOnlySection");
+
+  const processBtn = $("processBtn");
+  const errorAlert = $("errorAlert");
+
+  const progressSection = $("progressSection");
+  const progressFill = $("progressFill");
+  const progressText = $("progressText");
+
+  const resultSection = $("resultSection");
+  const resultVideo = $("resultVideo");
+  const resultStatus = $("resultStatus");
+  const downloadBtn = $("downloadBtn");
+
+  const loadHistoryBtn = $("loadHistoryBtn");
+  const historyList = $("historyList");
+  const historyEmpty = $("historyEmpty");
+  const historyVideo = $("historyVideo");
+  const historyDownloadBtn = $("historyDownloadBtn");
+
+  const TOKEN_STORAGE_KEY = "video_reup_hf_token";
+
+  // ---------------------------------------------------------------------- //
+  // Kết nối Gradio Client DÙNG CHUNG (cache 1 lần kết nối cho mọi tính năng:
+  // xử lý video, lịch sử 24h...). Nếu kết nối lỗi -> reset để lần sau thử lại.
+  // ---------------------------------------------------------------------- //
+  let gradioClient = null;
+
+  async function getClient() {
+    const token = hfTokenInput.value.trim() || safeStorageGet(TOKEN_STORAGE_KEY) || "";
+    if (!token) {
+      throw new Error("Vui lòng nhập và lưu Hugging Face Access Token trước.");
+    }
+    if (!gradioClient) {
+      gradioClient = await Client.connect(SPACE_ID, { hf_token: token });
+    }
+    return gradioClient;
+  }
+
+  function resetClient() {
+    gradioClient = null;
+  }
+
+  // ---------------------------------------------------------------------- //
+  // Token: đọc/ghi localStorage — CÓ FALLBACK an toàn.
+  // Một số môi trường (iframe sandbox, chế độ riêng tư, trình duyệt chặn cookie)
+  // sẽ throw SecurityError khi truy cập localStorage -> bọc try/catch và fallback
+  // sang lưu trong RAM (biến memoryStorage). App vẫn hoạt động bình thường, chỉ
+  // là token không được nhớ lại sau khi tải lại trang.
+  // ---------------------------------------------------------------------- //
+  const memoryStorage = {};
+
+  function safeStorageGet(key) {
+    try {
+      return window.localStorage.getItem(key);
+    } catch (err) {
+      return memoryStorage[key] ?? null;
+    }
+  }
+
+  function safeStorageSet(key, value) {
+    try {
+      window.localStorage.setItem(key, value);
+    } catch (err) {
+      memoryStorage[key] = value;
+    }
+  }
+
+  function loadSavedToken() {
+    const saved = safeStorageGet(TOKEN_STORAGE_KEY);
+    if (saved) hfTokenInput.value = saved;
+  }
+  function saveToken() {
+    const value = hfTokenInput.value.trim();
+    if (!value) { showError("Vui lòng nhập Access Token trước khi lưu."); return; }
+    safeStorageSet(TOKEN_STORAGE_KEY, value);
+    resetClient(); // token đổi -> buộc kết nối lại với token mới
+    tokenSavedStatus.classList.add("show");
+    setTimeout(() => tokenSavedStatus.classList.remove("show"), 2500);
+  }
+  toggleTokenBtn.addEventListener("click", () => {
+    hfTokenInput.type = hfTokenInput.type === "password" ? "text" : "password";
+    toggleTokenBtn.textContent = hfTokenInput.type === "password" ? "👁️" : "🙈";
+  });
+  saveTokenBtn.addEventListener("click", saveToken);
+
+  // ---------------------------------------------------------------------- //
+  // Radio helpers
+  // ---------------------------------------------------------------------- //
+  function getRadioValue(name) {
+    const el = document.querySelector(`input[name="${name}"]:checked`);
+    return el ? el.value : null;
+  }
+
+  // ---------------------------------------------------------------------- //
+  // Hiện/ẩn nhóm control chỉ dùng khi bật "Cả Phụ đề + Lồng tiếng"
+  // (đúng behavior mode_radio.change() bên Gradio thật)
+  // ---------------------------------------------------------------------- //
+  function syncDubVisibility() {
+    const isDub = getRadioValue("processingMode") === "Cả Phụ đề + Lồng tiếng";
+    dubOnlySection.classList.toggle("show", isDub);
+  }
+  document.querySelectorAll('input[name="processingMode"]').forEach((el) =>
+    el.addEventListener("change", syncDubVisibility)
+  );
+
+  function syncVolumeVisibility() {
+    volumeWrap.classList.toggle("disabled", !keepOriginalToggle.checked);
+  }
+  keepOriginalToggle.addEventListener("change", syncVolumeVisibility);
+
+  // ---------------------------------------------------------------------- //
+  // Slider value display
+  // ---------------------------------------------------------------------- //
+  speedSlider.addEventListener("input", () => { speedValue.textContent = parseFloat(speedSlider.value).toFixed(2); });
+  ttsRateSlider.addEventListener("input", () => {
+    const v = parseInt(ttsRateSlider.value, 10);
+    ttsRateValue.textContent = (v > 0 ? "+" : "") + v + "%";
+  });
+  ttsPaddingSlider.addEventListener("input", () => { ttsPaddingValue.textContent = parseFloat(ttsPaddingSlider.value).toFixed(2); });
+  volumeSlider.addEventListener("input", () => { volumeValue.textContent = parseFloat(volumeSlider.value).toFixed(2); });
+
+  // ---------------------------------------------------------------------- //
+  // Helpers UI
+  // ---------------------------------------------------------------------- //
+  function showError(message) {
+    errorAlert.textContent = "❌ " + message;
+    errorAlert.classList.add("show");
+  }
+  function clearError() {
+    errorAlert.classList.remove("show");
+    errorAlert.textContent = "";
+  }
+  function setProgress(fraction, text) {
+    progressSection.classList.add("show");
+    if (fraction === null) {
+      progressFill.classList.add("indeterminate");
+    } else {
+      progressFill.classList.remove("indeterminate");
+      progressFill.style.width = Math.round(Math.max(0, Math.min(1, fraction)) * 100) + "%";
+    }
+    if (text) progressText.textContent = text;
+  }
+  function hideProgress() {
+    progressSection.classList.remove("show");
+    progressFill.classList.remove("indeterminate");
+    progressFill.style.width = "0%";
+  }
+  function setButtonLoading(isLoading) {
+    processBtn.disabled = isLoading;
+    processBtn.textContent = isLoading ? "⏳ Đang xử lý..." : "🚀 Xử Lý Video";
+  }
+  // Chuẩn hoá field video trả về từ @gradio/client (có thể là {url}, {path}, hoặc string).
+  function resolveFileUrl(fileData) {
+    if (!fileData) return null;
+    if (typeof fileData === "string") return fileData;
+    if (fileData.url) return fileData.url;
+    if (fileData.path) return fileData.path;
+    return null;
+  }
+
+  // ---------------------------------------------------------------------- //
+  // Xử lý chính: kết nối Space -> gọi API "process_video" (đầy đủ tính năng)
+  // ---------------------------------------------------------------------- //
+  async function handleProcess() {
+    clearError();
+    hideProgress();
+    resultSection.classList.remove("show");
+
+    const shareText = shareTextInput.value.trim();
+    const videoFile = videoFileInput.files && videoFileInput.files[0] ? videoFileInput.files[0] : null;
+
+    if (!shareText && !videoFile) { showError("Vui lòng dán link/văn bản chia sẻ HOẶC chọn 1 file video."); return; }
+
+    const isDub = getRadioValue("processingMode") === "Cả Phụ đề + Lồng tiếng";
+
+    // Thứ tự PHẢI khớp đúng inputs=[...] của submit_btn.click(api_name="process_video") trong app.py.
+    const args = [
+      videoFile,                                  // video_input
+      shareText,                                   // douyin_text_input
+      getRadioValue("subtitleStyle"),               // subtitle_style_radio
+      getRadioValue("processingMode"),              // mode_radio
+      getRadioValue("contentStyle"),                // content_style_radio
+      getRadioValue("voice"),                       // voice_radio (chỉ có ý nghĩa nếu isDub)
+      parseFloat(speedSlider.value),                // speed_slider
+      getRadioValue("aspectMode"),                  // aspect_mode_radio
+      parseInt(ttsRateSlider.value, 10),            // tts_rate_slider
+      parseFloat(ttsPaddingSlider.value),           // tts_padding_slider
+      isDub ? keepOriginalToggle.checked : false,   // keep_original_audio_checkbox
+      parseFloat(volumeSlider.value),               // original_volume_slider
+      shortTitleMode.checked,                       // short_title_mode
+    ];
+
+    setButtonLoading(true);
+    setProgress(null, "Đang kết nối tới Hugging Face Space...");
+
+    try {
+      const client = await getClient();
+
+      setProgress(0, "Đã kết nối — đang gửi yêu cầu xử lý...");
+
+      const submission = client.submit(API_NAME, args);
+
+      let finalData = null;
+
+      for await (const event of submission) {
+        if (event.type === "status") {
+          const stage = event.stage;
+          if (stage === "pending" || stage === "generating") {
+            const frac =
+              typeof event.progress_data?.[0]?.progress === "number"
+                ? event.progress_data[0].progress
+                : null;
+            const desc = event.progress_data?.[0]?.desc || "Đang xử lý...";
+            setProgress(frac, desc);
+          } else if (stage === "error") {
+            throw new Error(event.message || "Lỗi không xác định từ backend.");
+          } else if (stage === "complete") {
+            setProgress(1, "Hoàn tất!");
+          }
+        } else if (event.type === "data") {
+          finalData = event.data;
+        }
+      }
+
+      if (!finalData || finalData.length < 1) {
+        throw new Error("Backend không trả về dữ liệu hợp lệ.");
+      }
+
+      const videoUrl = resolveFileUrl(finalData[0]);
+      const captionText = finalData.length > 1 ? String(finalData[1] ?? "") : "";
+
+      if (!videoUrl) { throw new Error("Không nhận được file video từ backend."); }
+
+      resultVideo.src = videoUrl;
+      downloadBtn.href = videoUrl;
+      resultStatus.textContent = captionText || "Xử lý thành công.";
+      resultSection.classList.add("show");
+      hideProgress();
+    } catch (err) {
+      console.error(err);
+      resetClient(); // kết nối có thể đã hỏng -> lần sau kết nối lại từ đầu
+      showError(err?.message || "Đã xảy ra lỗi không xác định khi xử lý video.");
+      hideProgress();
+    } finally {
+      setButtonLoading(false);
+    }
+  }
+
+  processBtn.addEventListener("click", handleProcess);
+
+  // ---------------------------------------------------------------------- //
+  // LỊCH SỬ VIDEO 24H — gọi 2 endpoint refresh_history_ui / preview_history_video
+  // của app.py (Gradio tự expose endpoint không tên theo tên hàm Python).
+  // ---------------------------------------------------------------------- //
+
+  // Bóc danh sách tên file từ payload mà refresh_history_ui() trả về.
+  // Backend return gr.update(choices=names, value=...) cho gr.Dropdown, nên dữ liệu
+  // qua API thường có dạng { choices: [...], value: ... }. choices có thể là mảng
+  // string, hoặc mảng [label, value] -> hàm này chuẩn hoá hết về mảng tên file.
+  function extractHistoryNames(apiData) {
+    const payload = Array.isArray(apiData) ? apiData[0] : apiData;
+    if (!payload) return [];
+    let choices = payload.choices ?? payload;
+    if (!Array.isArray(choices)) return [];
+    return choices
+      .map((c) => {
+        if (typeof c === "string") return c;
+        if (Array.isArray(c)) return c[0];
+        if (c && typeof c === "object") return c.name ?? c.value ?? "";
+        return "";
+      })
+      .filter((name) => typeof name === "string" && name.length > 0);
+  }
+
+  async function handleLoadHistory() {
+    clearError();
+    historyList.innerHTML = "";
+    historyEmpty.style.display = "none";
+    historyVideo.style.display = "none";
+    historyVideo.removeAttribute("src");
+    historyDownloadBtn.style.display = "none";
+
+    loadHistoryBtn.disabled = true;
+    loadHistoryBtn.textContent = "⏳ Đang tải danh sách...";
+
+    try {
+      const client = await getClient();
+      const result = await client.predict(HISTORY_LIST_API, []);
+      const names = extractHistoryNames(result?.data);
+
+      if (names.length === 0) {
+        historyEmpty.style.display = "block";
+        return;
+      }
+
+      names.forEach((name) => {
+        const item = document.createElement("div");
+        item.className = "history-item";
+
+        const nameSpan = document.createElement("span");
+        nameSpan.className = "name";
+        nameSpan.textContent = "🎬 " + name;
+
+        const actionSpan = document.createElement("span");
+        actionSpan.className = "action";
+        actionSpan.textContent = "▶ Xem";
+
+        item.appendChild(nameSpan);
+        item.appendChild(actionSpan);
+        item.addEventListener("click", () => handlePreviewHistory(name, item));
+        historyList.appendChild(item);
+      });
+    } catch (err) {
+      console.error(err);
+      resetClient();
+      showError(err?.message || "Không tải được danh sách lịch sử video.");
+    } finally {
+      loadHistoryBtn.disabled = false;
+      loadHistoryBtn.textContent = "🔄 Tải lại danh sách cache";
+    }
+  }
+
+  async function handlePreviewHistory(filename, itemEl) {
+    clearError();
+    document.querySelectorAll(".history-item").forEach((el) => {
+      el.classList.remove("active", "loading");
+      const a = el.querySelector(".action");
+      if (a) a.textContent = "▶ Xem";
+    });
+    itemEl.classList.add("active", "loading");
+    const actionSpan = itemEl.querySelector(".action");
+    if (actionSpan) actionSpan.textContent = "⏳";
+
+    historyVideo.style.display = "none";
+    historyDownloadBtn.style.display = "none";
+
+    try {
+      const client = await getClient();
+      const result = await client.predict(HISTORY_PREVIEW_API, [filename]);
+      const fileData = Array.isArray(result?.data) ? result.data[0] : null;
+      const url = resolveFileUrl(fileData);
+
+      if (!url) {
+        throw new Error("Video này không còn tồn tại trên Space (có thể đã quá 24h và bị xóa).");
+      }
+
+      historyVideo.src = url;
+      historyVideo.style.display = "block";
+      historyDownloadBtn.href = url;
+      historyDownloadBtn.style.display = "block";
+      historyVideo.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      if (actionSpan) actionSpan.textContent = "✅";
+    } catch (err) {
+      console.error(err);
+      resetClient();
+      itemEl.classList.remove("active");
+      if (actionSpan) actionSpan.textContent = "▶ Xem";
+      showError(err?.message || "Không xem được video lịch sử.");
+    } finally {
+      itemEl.classList.remove("loading");
+    }
+  }
+
+  loadHistoryBtn.addEventListener("click", handleLoadHistory);
+
+  // ---------------------------------------------------------------------- //
+  // Khởi tạo
+  // ---------------------------------------------------------------------- //
+  loadSavedToken();
+  syncDubVisibility();
+  syncVolumeVisibility();
+</script>
+
+</body>
+</html>
